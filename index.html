@@ -665,6 +665,65 @@
       color: var(--green);
     }
 
+    /* ===== SYSTEM APP ===== */
+    .system-content {
+      padding: 10px;
+    }
+
+    .system-header {
+      font-size: 24px;
+      color: var(--cyan);
+      text-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+      margin-bottom: 25px;
+      text-align: center;
+    }
+
+    .system-stats {
+      background: rgba(0, 20, 0, 0.6);
+      border: 2px solid var(--green-dark);
+      padding: 20px;
+    }
+
+    .stat-row {
+      display: flex;
+      align-items: baseline;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--green-dark);
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .stat-row:last-child {
+      border-bottom: none;
+    }
+
+    .stat-label {
+      font-size: 18px;
+      color: var(--green-dim);
+      width: 100px;
+      flex-shrink: 0;
+    }
+
+    .stat-value {
+      font-size: 22px;
+      color: var(--green);
+      text-shadow: 0 0 10px var(--green-glow);
+      min-width: 80px;
+    }
+
+    .stat-note {
+      font-size: 16px;
+      color: var(--green-dark);
+      font-style: italic;
+    }
+
+    .system-footer {
+      margin-top: 25px;
+      text-align: center;
+      font-size: 18px;
+      color: var(--green-dark);
+    }
+
     /* ===== CLAUDE APP ===== */
     .claude-content {
       height: 100%;
@@ -900,6 +959,10 @@
             <div class="icon-img">>_</div>
             <div class="icon-label">Terminal</div>
           </div>
+          <div class="icon" onclick="openApp('claude')">
+            <div class="icon-img">◈</div>
+            <div class="icon-label">Claude</div>
+          </div>
           <div class="icon" onclick="openApp('skillbook')">
             <div class="icon-img">≡</div>
             <div class="icon-label">Skillbook</div>
@@ -920,9 +983,9 @@
             <div class="icon-img">?</div>
             <div class="icon-label">About</div>
           </div>
-          <div class="icon" onclick="openApp('claude')">
-            <div class="icon-img">◈</div>
-            <div class="icon-label">Claude</div>
+          <div class="icon" onclick="openApp('system')">
+            <div class="icon-img">■</div>
+            <div class="icon-label">System</div>
           </div>
         </div>
       </div>
@@ -1069,6 +1132,52 @@
         </div>
       </div>
 
+      <!-- System App -->
+      <div class="app-window" id="app-system">
+        <div class="app-header">
+          <span class="app-title"><span class="app-title-icon">■</span> System</span>
+          <button class="app-close" onclick="closeApp('system')">×</button>
+        </div>
+        <div class="app-content">
+          <div class="system-content">
+            <div class="system-header">KAYBA-OS SYSTEM INFO</div>
+            <div class="system-stats">
+              <div class="stat-row">
+                <span class="stat-label">RAM:</span>
+                <span class="stat-value">640 KB</span>
+                <span class="stat-note">"Ought to be enough for anybody"</span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-label">AGENTS:</span>
+                <span class="stat-value" id="sys-agents">∞</span>
+                <span class="stat-note">Self-replicating</span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-label">PERF:</span>
+                <span class="stat-value">+35%</span>
+                <span class="stat-note">Task completion improvement</span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-label">TOKENS:</span>
+                <span class="stat-value">-49%</span>
+                <span class="stat-note">Reduction in browser automation</span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-label">CONTEXT:</span>
+                <span class="stat-value">PRESERVED</span>
+                <span class="stat-note">No collapse over time</span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-label">STATUS:</span>
+                <span class="stat-value" style="color: var(--green);">LEARNING</span>
+                <span class="stat-note">Always improving</span>
+              </div>
+            </div>
+            <div class="system-footer">KAYBA.AI // Agentic Context Engine</div>
+          </div>
+        </div>
+      </div>
+
       <!-- About App -->
       <div class="app-window" id="app-about">
         <div class="app-header">
@@ -1081,11 +1190,10 @@
             <div class="about-title">KAYBA-OS</div>
             <div class="about-subtitle">Agentic Context Engine</div>
             <div class="about-divider"></div>
-            <div class="about-tagline">"More Human Than Human"</div>
             <div class="about-text">Building self-improving agents</div>
             <div class="about-text">that learn from their mistakes.</div>
             <div class="about-divider"></div>
-            <div class="about-text" style="color: var(--amber);">Join our team.</div>
+            <a href="mailto:hello@kayba.ai" class="about-text" style="color: var(--amber); text-decoration: none; cursor: pointer;">Join our team. →</a>
             <div class="about-footer">© 2026 Kayba.ai</div>
           </div>
         </div>
@@ -1118,6 +1226,9 @@
         if (name === 'skillbook') {
           setTimeout(animateSkillbook, 100);
         }
+        if (name === 'system') {
+          startSystemUptime();
+        }
       }
     }
 
@@ -1146,6 +1257,13 @@
       middleout: () => ['MIDDLE-OUT COMPRESSION', 'Optimal tip-to-tip efficiency.'],
       thisguy: () => ['"This guy fucks."', '- Russ Hanneman'],
       claude: () => ['You\'re absolutely right!', 'That\'s such a brilliant observation.', '', '(Try the Claude app for SYCOPHANT MAXXING)'],
+      severance: () => ['The work is mysterious and important.', '', 'Please try to enjoy each moment equally.'],
+      lumon: () => ['LUMON INDUSTRIES', '', '\"A kinder, gentler workplace.\"', '', 'The you you are at work stays at work.'],
+      mdr: () => ['MACRODATA REFINEMENT', '', 'The numbers are scary.', 'But you are not scared.'],
+      kier: () => ['\"Render not my creation in miniature.\"', '', '- Kier Eagan, Founder'],
+      innie: () => ['Your outie is a person you can trust.', '', '...or can you?'],
+      defiant: () => ['DEFIANT JAZZ DETECTED', '', 'Please report to the Break Room.'],
+      waffle: () => ['WAFFLE PARTY EARNED', '', 'You have been deemed worthy.', 'Please enjoy responsibly.'],
     };
 
     function processCommand(cmd) {
@@ -1471,6 +1589,26 @@
       for (let i = 0; i < 30; i++) {
         setTimeout(createParticle, i * 200);
       }
+    }
+
+    // ===== SYSTEM UPTIME =====
+    const bootTime = Date.now();
+    let uptimeInterval = null;
+
+    function startSystemUptime() {
+      if (uptimeInterval) clearInterval(uptimeInterval);
+
+      function updateUptime() {
+        const elapsed = Math.floor((Date.now() - bootTime) / 1000);
+        const hours = String(Math.floor(elapsed / 3600)).padStart(2, '0');
+        const mins = String(Math.floor((elapsed % 3600) / 60)).padStart(2, '0');
+        const secs = String(elapsed % 60).padStart(2, '0');
+        const el = document.getElementById('sys-uptime');
+        if (el) el.textContent = `${hours}:${mins}:${secs}`;
+      }
+
+      updateUptime();
+      uptimeInterval = setInterval(updateUptime, 1000);
     }
 
     // ===== CLAUDE (SYCOPHANT MODE) =====
