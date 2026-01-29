@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kayba Poster - A3</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'VT323', monospace;
+      background: #1a1a1a;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      gap: 20px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 15px;
+    }
+
+    .controls button {
+      font-family: 'VT323', monospace;
+      font-size: 20px;
+      padding: 12px 24px;
+      background: #0a0a0a;
+      border: 2px solid #00ff00;
+      color: #00ff00;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .controls button:hover {
+      background: #00ff00;
+      color: #0a0a0a;
+    }
+
+    /* A3: 297mm x 420mm */
+    .poster {
+      width: 297mm;
+      height: 420mm;
+      background: #0a0a0a;
+      border: 5px solid #00ff00;
+      border-radius: 16px;
+      position: relative;
+      overflow: hidden;
+      box-shadow:
+        0 0 60px rgba(0, 255, 0, 0.4),
+        0 0 120px rgba(0, 255, 0, 0.15),
+        inset 0 0 200px rgba(0, 255, 0, 0.05);
+    }
+
+    /* Scanlines */
+    .poster::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 0, 0, 0.2) 2px,
+        rgba(0, 0, 0, 0.2) 4px
+      );
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    /* Screen glow */
+    .poster::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      box-shadow: inset 0 0 150px rgba(0, 255, 0, 0.1);
+      pointer-events: none;
+      z-index: 99;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 25px;
+      padding: 40px 50px;
+      border-bottom: 4px solid #004400;
+      background: linear-gradient(180deg, rgba(0, 68, 0, 0.5) 0%, transparent 100%);
+    }
+
+    .logo {
+      width: 80px;
+      height: 80px;
+      filter: brightness(0) saturate(100%) invert(89%) sepia(100%) saturate(1000%) hue-rotate(70deg) brightness(1.1);
+    }
+
+    .title {
+      font-size: 64px;
+      color: #00ff00;
+      text-shadow: 0 0 40px rgba(0, 255, 0, 0.7);
+      letter-spacing: 5px;
+    }
+
+    .content {
+      padding: 60px 55px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: calc(100% - 164px);
+    }
+
+    .headline {
+      font-size: 86px;
+      color: #00ff00;
+      text-shadow: 0 0 50px rgba(0, 255, 0, 0.8);
+      margin-bottom: 45px;
+      letter-spacing: 4px;
+    }
+
+    .headline .cursor {
+      animation: blink 1s step-end infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    .tagline {
+      font-size: 52px;
+      color: #00ffff;
+      text-shadow: 0 0 30px rgba(0, 255, 255, 0.6);
+      margin-bottom: 50px;
+      text-align: center;
+    }
+
+    .description {
+      font-size: 48px;
+      color: #00cc00;
+      text-align: center;
+      line-height: 1.5;
+      margin-bottom: 60px;
+    }
+
+    .qr-container {
+      background: #ffffff;
+      padding: 25px;
+      border-radius: 16px;
+      margin-bottom: 45px;
+      box-shadow: 0 0 40px rgba(255, 255, 255, 0.25);
+    }
+
+    .qr-placeholder {
+      width: 260px;
+      height: 260px;
+      background: #0a0a0a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      color: #00ff00;
+      text-align: center;
+    }
+
+    .scan-text {
+      font-size: 48px;
+      color: #00ff00;
+      text-shadow: 0 0 25px rgba(0, 255, 0, 0.6);
+    }
+
+    .scan-text .cursor {
+      animation: blink 1s step-end infinite;
+    }
+
+    .email {
+      position: absolute;
+      bottom: 30px;
+      right: 45px;
+      font-size: 22px;
+      color: #004400;
+    }
+
+    .site {
+      position: absolute;
+      bottom: 30px;
+      left: 45px;
+      font-size: 22px;
+      color: #004400;
+    }
+
+    /* Print styles */
+    @media print {
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+      }
+
+      body {
+        background: #0a0a0a !important;
+        padding: 0;
+        margin: 0;
+      }
+
+      .controls {
+        display: none !important;
+      }
+
+      .poster {
+        width: 297mm;
+        height: 420mm;
+        border-radius: 0;
+        box-shadow: none;
+        border-width: 3px;
+        background: #0a0a0a !important;
+      }
+
+      .header {
+        background: linear-gradient(180deg, rgba(0, 68, 0, 0.5) 0%, rgba(0, 68, 0, 0.2) 100%) !important;
+      }
+
+      .qr-container {
+        background: #ffffff !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="controls">
+    <button onclick="window.print()">Export to PDF</button>
+  </div>
+
+  <div class="poster">
+    <div class="header">
+      <img src="Kayba Logo.png" alt="" class="logo">
+      <span class="title">KAYBA-OS</span>
+    </div>
+    <div class="content">
+      <div class="headline">> JOIN US<span class="cursor">_</span></div>
+
+      <div class="tagline">"More Human Than Human"</div>
+
+      <div class="description">
+        Building self-improving<br>
+        agents that learn<br>
+        from their mistakes.
+      </div>
+
+      <div class="qr-container">
+        <div class="qr-placeholder">
+          [QR CODE]<br>
+          Replace me
+        </div>
+      </div>
+
+      <div class="scan-text">> scan to apply<span class="cursor">_</span></div>
+    </div>
+
+    <div class="site">kayba.ai</div>
+    <div class="email">hello@kayba.ai</div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,1541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>KAYBA-OS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    :root {
+      --green: #00ff00;
+      --green-dim: #00cc00;
+      --green-dark: #004400;
+      --green-glow: rgba(0, 255, 0, 0.6);
+      --screen-bg: #0a0a0a;
+      --blue: #04364C;
+      --blue-light: #0a5a7c;
+      --cyan: #00ffff;
+      --amber: #ffbb33;
+      --magenta: #ff00ff;
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      font-family: 'VT323', monospace;
+      background: #0a0a0a;
+      color: var(--green);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* ===== CRT MONITOR FRAME ===== */
+    .monitor-frame {
+      display: contents;
+    }
+
+    .monitor-bezel {
+      display: none;
+    }
+
+    /* ===== SCREEN ===== */
+    .screen {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      background: var(--screen-bg);
+      overflow: hidden;
+    }
+
+    /* Particles */
+    .particles {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .particle {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+      animation: float linear infinite;
+    }
+
+    @keyframes float {
+      0% {
+        transform: translateY(100vh) translateX(0) scale(1);
+        opacity: 0;
+      }
+      10% {
+        opacity: 1;
+      }
+      90% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(-20px) translateX(var(--drift)) scale(var(--scale-end));
+        opacity: 0;
+      }
+    }
+
+    /* CRT Effects */
+    .crt-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1000;
+    }
+
+    .scanlines {
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 1px,
+        rgba(0, 0, 0, 0.3) 1px,
+        rgba(0, 0, 0, 0.3) 2px
+      );
+    }
+
+    .screen-flicker {
+      position: absolute;
+      inset: 0;
+      background: var(--green);
+      opacity: 0;
+      animation: flicker 0.15s infinite;
+    }
+
+    @keyframes flicker {
+      0% { opacity: 0.02; }
+      5% { opacity: 0.04; }
+      10% { opacity: 0.02; }
+      20% { opacity: 0.05; }
+      30% { opacity: 0.02; }
+      50% { opacity: 0.03; }
+      70% { opacity: 0.05; }
+      90% { opacity: 0.02; }
+      100% { opacity: 0.03; }
+    }
+
+    .screen-glow {
+      position: absolute;
+      inset: 0;
+      box-shadow: inset 0 0 150px rgba(0, 255, 0, 0.15);
+    }
+
+    .vignette {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.5) 100%);
+    }
+
+    /* ===== DESKTOP ===== */
+    .desktop {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      z-index: 2;
+    }
+
+    /* Top Bar */
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 20px;
+      background: #001a00;
+      border-bottom: 2px solid var(--green-dark);
+      font-size: 22px;
+      text-shadow: 0 0 10px var(--green-glow);
+      flex-shrink: 0;
+      position: relative;
+      z-index: 10;
+    }
+
+    .top-bar-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .top-bar-logo {
+      width: 32px;
+      height: 32px;
+      filter: brightness(0) saturate(100%) invert(89%) sepia(100%) saturate(1000%) hue-rotate(70deg) brightness(1.1);
+    }
+
+    .top-bar-title {
+      font-size: 26px;
+      letter-spacing: 3px;
+    }
+
+    /* Desktop Area */
+    .desktop-area {
+      flex: 1;
+      padding: 25px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, 120px);
+      grid-auto-rows: 140px;
+      gap: 25px;
+      align-content: start;
+      overflow-y: auto;
+    }
+
+    /* Icons */
+    .icon {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 15px 10px;
+      cursor: pointer;
+      border-radius: 12px;
+      transition: all 0.15s ease;
+      text-align: center;
+    }
+
+    .icon:hover {
+      background: rgba(0, 255, 0, 0.15);
+    }
+
+    .icon:active {
+      background: rgba(0, 255, 0, 0.25);
+      transform: scale(0.95);
+    }
+
+    .icon-img {
+      font-size: 64px;
+      line-height: 1;
+      margin-bottom: 12px;
+      text-shadow: 0 0 30px var(--green-glow);
+    }
+
+    .icon-label {
+      font-size: 22px;
+      text-shadow: 0 0 12px var(--green-glow);
+      word-break: break-word;
+      line-height: 1.2;
+    }
+
+    /* ===== APP WINDOW ===== */
+    .app-window {
+      position: absolute;
+      inset: 0;
+      background: var(--screen-bg);
+      z-index: 100;
+      display: none;
+      flex-direction: column;
+    }
+
+    .app-window.active {
+      display: flex;
+      animation: app-open 0.2s ease-out;
+    }
+
+    @keyframes app-open {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .app-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 20px;
+      background: linear-gradient(180deg, rgba(0, 68, 0, 0.7) 0%, rgba(0, 68, 0, 0.3) 100%);
+      border-bottom: 2px solid var(--green);
+      flex-shrink: 0;
+    }
+
+    .app-title {
+      font-size: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-shadow: 0 0 10px var(--green-glow);
+    }
+
+    .app-title-icon {
+      font-size: 26px;
+    }
+
+    .app-close {
+      background: none;
+      border: 2px solid var(--green);
+      color: var(--green);
+      width: 44px;
+      height: 44px;
+      font-size: 28px;
+      font-family: 'VT323', monospace;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+
+    .app-close:hover, .app-close:active {
+      background: var(--green);
+      color: var(--screen-bg);
+    }
+
+    .app-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+    }
+
+    /* ===== TERMINAL APP ===== */
+    .terminal {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .terminal-output {
+      flex: 1;
+      overflow-y: auto;
+      padding-bottom: 15px;
+      font-size: 22px;
+      line-height: 1.6;
+    }
+
+    .terminal-line {
+      margin: 6px 0;
+      word-wrap: break-word;
+    }
+
+    .terminal-line.system { color: var(--green-dim); }
+    .terminal-line.prompt { color: var(--cyan); }
+    .terminal-line.output { color: var(--green); }
+
+    .terminal-input-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-top: 15px;
+      border-top: 2px solid var(--green-dark);
+    }
+
+    .terminal-prompt-symbol {
+      color: var(--green);
+      font-size: 26px;
+      flex-shrink: 0;
+    }
+
+    .terminal-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--green);
+      font-family: 'VT323', monospace;
+      font-size: 24px;
+      outline: none;
+    }
+
+    .terminal-input::placeholder { color: var(--green-dark); }
+
+    /* ===== ABOUT APP ===== */
+    .about-content {
+      text-align: center;
+      padding: 30px;
+    }
+
+    .about-logo-img {
+      width: 120px;
+      height: 120px;
+      margin-bottom: 25px;
+      filter: brightness(0) saturate(100%) invert(89%) sepia(100%) saturate(1000%) hue-rotate(70deg) brightness(1.1);
+      drop-shadow: 0 0 30px var(--green-glow);
+    }
+
+    .about-logo {
+      font-size: 80px;
+      margin-bottom: 25px;
+      text-shadow: 0 0 40px var(--green-glow);
+    }
+
+    .about-title {
+      font-size: 42px;
+      margin-bottom: 15px;
+      text-shadow: 0 0 20px var(--green-glow);
+    }
+
+    .about-subtitle {
+      font-size: 24px;
+      color: var(--green-dim);
+      margin-bottom: 25px;
+    }
+
+    .about-divider {
+      width: 250px;
+      height: 2px;
+      background: var(--green-dark);
+      margin: 25px auto;
+    }
+
+    .about-text {
+      font-size: 24px;
+      line-height: 1.8;
+      margin: 12px 0;
+    }
+
+    .about-tagline {
+      font-size: 28px;
+      color: var(--cyan);
+      text-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+      margin: 20px 0;
+    }
+
+    .about-footer {
+      margin-top: 40px;
+      font-size: 18px;
+      color: var(--green-dark);
+    }
+
+    /* ===== SKILLBOOK APP ===== */
+    .skillbook-content {
+      padding: 10px;
+    }
+
+    .skillbook-header {
+      font-size: 24px;
+      color: var(--cyan);
+      text-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .skill-entry {
+      background: rgba(0, 30, 0, 0.6);
+      border: 2px solid var(--green-dark);
+      padding: 15px;
+      margin-bottom: 15px;
+      border-left: 4px solid var(--cyan);
+    }
+
+    .skill-entry.new {
+      border-left-color: var(--green);
+      animation: skill-glow 2s ease-in-out infinite;
+    }
+
+    @keyframes skill-glow {
+      0%, 100% { box-shadow: 0 0 5px var(--green-glow); }
+      50% { box-shadow: 0 0 20px var(--green-glow); }
+    }
+
+    .skill-title {
+      font-size: 20px;
+      color: var(--green);
+      margin-bottom: 8px;
+      text-shadow: 0 0 10px var(--green-glow);
+    }
+
+    .skill-pattern {
+      font-size: 18px;
+      color: var(--green-dim);
+      line-height: 1.5;
+    }
+
+    .skill-meta {
+      font-size: 16px;
+      color: var(--green-dark);
+      margin-top: 10px;
+    }
+
+    /* ===== AGENT APP ===== */
+    .agent-content {
+      padding: 10px;
+    }
+
+    .agent-header {
+      font-size: 24px;
+      color: var(--cyan);
+      text-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .agent-trace {
+      background: rgba(0, 10, 0, 0.8);
+      border: 2px solid var(--green-dark);
+      padding: 15px;
+      font-size: 18px;
+      line-height: 1.6;
+      max-height: 300px;
+      overflow-y: auto;
+      margin-bottom: 20px;
+    }
+
+    .trace-line {
+      margin: 4px 0;
+    }
+
+    .trace-line.action { color: var(--cyan); }
+    .trace-line.error { color: #ff6b6b; }
+    .trace-line.success { color: var(--green); }
+    .trace-line.reflect { color: var(--amber); }
+    .trace-line.learn { color: var(--magenta); }
+
+    .agent-status {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      padding: 15px;
+      background: rgba(0, 30, 0, 0.6);
+      border: 2px solid var(--green-dark);
+      margin-bottom: 20px;
+    }
+
+    .status-indicator {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 15px var(--green-glow);
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(0.9); }
+    }
+
+    .status-text {
+      font-size: 22px;
+      flex: 1;
+    }
+
+    .agent-btn {
+      background: none;
+      border: 2px solid var(--green);
+      color: var(--green);
+      padding: 14px 30px;
+      font-family: 'VT323', monospace;
+      font-size: 22px;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: block;
+      width: 100%;
+      text-align: center;
+    }
+
+    .agent-btn:hover, .agent-btn:active {
+      background: var(--green);
+      color: var(--screen-bg);
+    }
+
+    /* ===== METRICS APP ===== */
+    .metrics-content {
+      padding: 10px;
+    }
+
+    .metrics-header {
+      font-size: 24px;
+      color: var(--cyan);
+      text-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+      margin-bottom: 25px;
+      text-align: center;
+    }
+
+    .metric-card {
+      background: rgba(0, 30, 0, 0.6);
+      border: 2px solid var(--green-dark);
+      padding: 20px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .metric-value {
+      font-size: 48px;
+      color: var(--green);
+      text-shadow: 0 0 30px var(--green-glow);
+      margin-bottom: 10px;
+    }
+
+    .metric-value .highlight {
+      color: var(--cyan);
+    }
+
+    .metric-label {
+      font-size: 20px;
+      color: var(--green-dim);
+    }
+
+    .metric-detail {
+      font-size: 16px;
+      color: var(--green-dark);
+      margin-top: 8px;
+    }
+
+    /* ===== SWARM APP ===== */
+    .swarm-content {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .swarm-header {
+      font-size: 24px;
+      color: var(--cyan);
+      text-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+      margin-bottom: 15px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .swarm-canvas {
+      flex: 1;
+      background: rgba(0, 10, 0, 0.6);
+      border: 2px solid var(--green-dark);
+      border-radius: 4px;
+      position: relative;
+      overflow: hidden;
+      min-height: 300px;
+    }
+
+    .swarm-agent {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 15px var(--green-glow);
+      transition: all 0.3s ease-out;
+    }
+
+    .swarm-agent.searching {
+      background: var(--cyan);
+      box-shadow: 0 0 15px rgba(0, 255, 255, 0.6);
+    }
+
+    .swarm-agent.found {
+      background: var(--magenta);
+      box-shadow: 0 0 20px rgba(255, 0, 255, 0.6);
+    }
+
+    .swarm-agent.converged {
+      background: var(--green);
+      box-shadow: 0 0 25px var(--green-glow);
+    }
+
+    .swarm-target {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--amber);
+      border-radius: 50%;
+      box-shadow: 0 0 20px rgba(255, 187, 51, 0.5);
+      animation: target-pulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes target-pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.3); opacity: 0.7; }
+    }
+
+    .swarm-status {
+      padding: 15px;
+      text-align: center;
+      font-size: 20px;
+      color: var(--green-dim);
+      flex-shrink: 0;
+    }
+
+    .swarm-status span {
+      color: var(--green);
+    }
+
+    /* ===== CLAUDE APP ===== */
+    .claude-content {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .claude-header {
+      font-size: 20px;
+      color: var(--amber);
+      text-align: center;
+      padding-bottom: 15px;
+      border-bottom: 2px solid var(--green-dark);
+      margin-bottom: 15px;
+    }
+
+    .claude-chat {
+      flex: 1;
+      overflow-y: auto;
+      padding-bottom: 15px;
+    }
+
+    .claude-msg {
+      margin-bottom: 15px;
+      padding: 12px 15px;
+      border-radius: 8px;
+      font-size: 20px;
+      line-height: 1.5;
+    }
+
+    .claude-msg.user {
+      background: rgba(0, 255, 255, 0.1);
+      border: 1px solid var(--cyan);
+      color: var(--cyan);
+      margin-left: 40px;
+    }
+
+    .claude-msg.assistant {
+      background: rgba(255, 187, 51, 0.1);
+      border: 1px solid var(--amber);
+      color: var(--amber);
+      margin-right: 40px;
+    }
+
+    .claude-input-row {
+      display: flex;
+      gap: 12px;
+      padding-top: 15px;
+      border-top: 2px solid var(--green-dark);
+    }
+
+    .claude-input {
+      flex: 1;
+      background: rgba(0, 30, 0, 0.6);
+      border: 2px solid var(--green-dark);
+      color: var(--green);
+      font-family: 'VT323', monospace;
+      font-size: 20px;
+      padding: 12px 15px;
+      outline: none;
+    }
+
+    .claude-input:focus {
+      border-color: var(--green);
+    }
+
+    .claude-send {
+      background: none;
+      border: 2px solid var(--green);
+      color: var(--green);
+      font-family: 'VT323', monospace;
+      font-size: 20px;
+      padding: 12px 20px;
+      cursor: pointer;
+    }
+
+    .claude-send:hover {
+      background: var(--green);
+      color: var(--screen-bg);
+    }
+
+    /* ===== SKILLBOOK TYPEWRITER ===== */
+    .skill-entry.typing .skill-pattern::after {
+      content: '_';
+      animation: typing-cursor 0.7s step-end infinite;
+    }
+
+    @keyframes typing-cursor {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+
+    /* ===== SCROLLBAR ===== */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: var(--screen-bg); }
+    ::-webkit-scrollbar-thumb { background: var(--green-dark); border-radius: 4px; }
+
+    /* ===== DESKTOP MODE ===== */
+    @media (min-width: 900px) and (min-height: 700px) {
+      body {
+        background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+      }
+
+      .monitor-frame {
+        display: block;
+        position: relative;
+        background: linear-gradient(145deg, #2a2a2a 0%, #1a1a1a 50%, #0a0a0a 100%);
+        border-radius: 30px;
+        padding: 20px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+      }
+
+      .monitor-frame::after {
+        content: 'KAYBA';
+        position: absolute;
+        bottom: 8px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 12px;
+        color: #444;
+        letter-spacing: 3px;
+      }
+
+      .monitor-bezel {
+        display: flex;
+        position: absolute;
+        bottom: 5px;
+        right: 25px;
+        gap: 8px;
+      }
+
+      .led {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--green);
+        box-shadow: 0 0 8px var(--green-glow);
+        animation: led-pulse 2s ease-in-out infinite;
+      }
+
+      @keyframes led-pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+      }
+
+      .screen {
+        width: 800px;
+        height: 600px;
+        border-radius: 20px;
+      }
+
+      .desktop-area {
+        grid-template-columns: repeat(auto-fill, 130px);
+        grid-auto-rows: 150px;
+      }
+
+      .icon-img { font-size: 70px; }
+      .icon-label { font-size: 24px; }
+    }
+
+    /* ===== MOBILE TWEAKS ===== */
+    @media (max-width: 500px) {
+      .top-bar { padding: 12px 18px; }
+      .top-bar-title { font-size: 24px; }
+
+      .desktop-area {
+        grid-template-columns: repeat(3, 1fr);
+        grid-auto-rows: 130px;
+        gap: 15px;
+        padding: 20px;
+      }
+
+      .icon-img { font-size: 56px; }
+      .icon-label { font-size: 18px; }
+
+      .app-header { padding: 14px 18px; }
+      .app-title { font-size: 22px; }
+      .app-content { padding: 18px; }
+
+      .terminal-output { font-size: 20px; }
+      .terminal-input { font-size: 22px; }
+      .skillbook-header { font-size: 22px; }
+      .skill-title { font-size: 18px; }
+      .skill-pattern { font-size: 16px; }
+      .agent-header { font-size: 22px; }
+      .agent-trace { font-size: 16px; }
+      .metrics-header { font-size: 22px; }
+      .metric-value { font-size: 40px; }
+      .metric-label { font-size: 18px; }
+      .swarm-header { font-size: 22px; }
+      .swarm-status { font-size: 18px; }
+    }
+
+    @media (max-width: 380px) {
+      .desktop-area {
+        grid-template-columns: repeat(3, 1fr);
+        grid-auto-rows: 110px;
+        gap: 10px;
+        padding: 15px;
+      }
+
+      .icon-img { font-size: 48px; }
+      .icon-label { font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="monitor-frame">
+    <div class="monitor-bezel">
+      <div class="led"></div>
+    </div>
+    <div class="screen">
+      <div class="particles" id="particles"></div>
+      <div class="crt-overlay">
+        <div class="scanlines"></div>
+        <div class="screen-flicker"></div>
+        <div class="screen-glow"></div>
+        <div class="vignette"></div>
+      </div>
+
+      <div class="desktop">
+        <div class="top-bar">
+          <div class="top-bar-left">
+            <img src="Kayba Logo.png" alt="" class="top-bar-logo">
+            <span class="top-bar-title">KAYBA-OS</span>
+          </div>
+          <span class="top-bar-clock" id="clock">00:00:00</span>
+        </div>
+
+        <div class="desktop-area">
+          <div class="icon" onclick="openApp('terminal')">
+            <div class="icon-img">>_</div>
+            <div class="icon-label">Terminal</div>
+          </div>
+          <div class="icon" onclick="openApp('skillbook')">
+            <div class="icon-img">≡</div>
+            <div class="icon-label">Skillbook</div>
+          </div>
+          <div class="icon" onclick="openApp('agent')">
+            <div class="icon-img">λ</div>
+            <div class="icon-label">Agent</div>
+          </div>
+          <div class="icon" onclick="openApp('metrics')">
+            <div class="icon-img">%</div>
+            <div class="icon-label">Metrics</div>
+          </div>
+          <div class="icon" onclick="openApp('swarm')">
+            <div class="icon-img">◎</div>
+            <div class="icon-label">Swarm</div>
+          </div>
+          <div class="icon" onclick="openApp('about')">
+            <div class="icon-img">?</div>
+            <div class="icon-label">About</div>
+          </div>
+          <div class="icon" onclick="openApp('claude')">
+            <div class="icon-img">◈</div>
+            <div class="icon-label">Claude</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Terminal App -->
+      <div class="app-window" id="app-terminal">
+        <div class="app-header">
+          <span class="app-title"><span class="app-title-icon">>_</span> Terminal</span>
+          <button class="app-close" onclick="closeApp('terminal')">×</button>
+        </div>
+        <div class="app-content">
+          <div class="terminal">
+            <div class="terminal-output" id="terminal-output">
+              <div class="terminal-line system">KAYBA-OS Terminal v1.0</div>
+              <div class="terminal-line system">Type 'help' for commands.</div>
+              <div class="terminal-line system">---</div>
+            </div>
+            <div class="terminal-input-row">
+              <span class="terminal-prompt-symbol">></span>
+              <input type="text" class="terminal-input" id="terminal-input" placeholder="Enter command..." autocomplete="off" autocapitalize="off">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Skillbook App -->
+      <div class="app-window" id="app-skillbook">
+        <div class="app-header">
+          <span class="app-title"><span class="app-title-icon">≡</span> Skillbook</span>
+          <button class="app-close" onclick="closeApp('skillbook')">×</button>
+        </div>
+        <div class="app-content">
+          <div class="skillbook-content">
+            <div class="skillbook-header">LEARNED STRATEGIES</div>
+            <div id="skillbook-entries">
+              <div class="skill-entry new">
+                <div class="skill-title">> SPA Navigation Delay</div>
+                <div class="skill-pattern">After SPA category navigation, expect 3+ second DOM stabilization delay before interacting with new elements.</div>
+                <div class="skill-meta">Learned from: browser_automation • Success rate: 94%</div>
+              </div>
+              <div class="skill-entry">
+                <div class="skill-title">> Modal Trap Recovery</div>
+                <div class="skill-pattern">When click actions fail silently, check for invisible overlays or modal backdrops intercepting pointer events.</div>
+                <div class="skill-meta">Learned from: checkout_flow • Success rate: 91%</div>
+              </div>
+              <div class="skill-entry">
+                <div class="skill-title">> Selector Fallback Chain</div>
+                <div class="skill-pattern">If data-testid selector fails, fallback to aria-label, then role+text, then structural position. Never rely on generated class names.</div>
+                <div class="skill-meta">Learned from: dom_selection • Success rate: 89%</div>
+              </div>
+              <div class="skill-entry">
+                <div class="skill-title">> Auth State Propagation</div>
+                <div class="skill-pattern">After login, wait for auth token to propagate to localStorage before making authenticated API calls. Cookie-based auth needs page reload.</div>
+                <div class="skill-meta">Learned from: auth_flow_debug • Success rate: 87%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Agent App -->
+      <div class="app-window" id="app-agent">
+        <div class="app-header">
+          <span class="app-title"><span class="app-title-icon">λ</span> Agent</span>
+          <button class="app-close" onclick="closeApp('agent')">×</button>
+        </div>
+        <div class="app-content">
+          <div class="agent-content">
+            <div class="agent-header">AGENT EXECUTION LOOP</div>
+            <div class="agent-status">
+              <div class="status-indicator" id="agent-indicator"></div>
+              <div class="status-text" id="agent-status">READY</div>
+            </div>
+            <div class="agent-trace" id="agent-trace">
+              <div class="trace-line">// Click RUN to watch an agent learn</div>
+            </div>
+            <button class="agent-btn" id="agent-btn" onclick="runAgent()">[ RUN AGENT ]</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Metrics App -->
+      <div class="app-window" id="app-metrics">
+        <div class="app-header">
+          <span class="app-title"><span class="app-title-icon">%</span> Metrics</span>
+          <button class="app-close" onclick="closeApp('metrics')">×</button>
+        </div>
+        <div class="app-content">
+          <div class="metrics-content">
+            <div class="metrics-header">ENGINE PERFORMANCE</div>
+            <div class="metric-card">
+              <div class="metric-value"><span class="highlight">30%</span> → 100%</div>
+              <div class="metric-label">Success Rate Improvement</div>
+              <div class="metric-detail">Browser automation tasks</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-value" id="metric-steps">82%</div>
+              <div class="metric-label">Step Reduction</div>
+              <div class="metric-detail">Agents complete tasks faster</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-value" id="metric-tokens">65%</div>
+              <div class="metric-label">Token Cost Savings</div>
+              <div class="metric-detail">Including engine overhead</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Swarm App -->
+      <div class="app-window" id="app-swarm">
+        <div class="app-header">
+          <span class="app-title"><span class="app-title-icon">◎</span> Swarm</span>
+          <button class="app-close" onclick="closeApp('swarm')">×</button>
+        </div>
+        <div class="app-content" style="padding: 15px;">
+          <div class="swarm-content">
+            <div class="swarm-header">AGENT SWARM VISUALIZATION</div>
+            <div class="swarm-canvas" id="swarm-canvas"></div>
+            <div class="swarm-status" id="swarm-status">
+              Agents: <span id="swarm-count">0</span> | Status: <span id="swarm-state">INITIALIZING</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Claude App -->
+      <div class="app-window" id="app-claude">
+        <div class="app-header">
+          <span class="app-title"><span class="app-title-icon">◈</span> Claude</span>
+          <button class="app-close" onclick="closeApp('claude')">×</button>
+        </div>
+        <div class="app-content">
+          <div class="claude-content">
+            <div class="claude-header">OPUS 8.5 (SYCOPHANT MAXXING)</div>
+            <div class="claude-chat" id="claude-chat">
+              <div class="claude-msg assistant">You're absolutely right to open this app! I'm here to validate everything you say.</div>
+            </div>
+            <div class="claude-input-row">
+              <input type="text" class="claude-input" id="claude-input" placeholder="Type anything..." autocomplete="off">
+              <button class="claude-send" onclick="sendClaude()">SEND</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- About App -->
+      <div class="app-window" id="app-about">
+        <div class="app-header">
+          <span class="app-title"><span class="app-title-icon">?</span> About</span>
+          <button class="app-close" onclick="closeApp('about')">×</button>
+        </div>
+        <div class="app-content">
+          <div class="about-content">
+            <img src="Kayba Logo.png" alt="Kayba" class="about-logo-img">
+            <div class="about-title">KAYBA-OS</div>
+            <div class="about-subtitle">Agentic Context Engine</div>
+            <div class="about-divider"></div>
+            <div class="about-tagline">"More Human Than Human"</div>
+            <div class="about-text">Building self-improving agents</div>
+            <div class="about-text">that learn from their mistakes.</div>
+            <div class="about-divider"></div>
+            <div class="about-text" style="color: var(--amber);">Join our team.</div>
+            <div class="about-footer">© 2026 Kayba.ai</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ===== CLOCK =====
+    function updateClock() {
+      document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-US', { hour12: false });
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // ===== APP MANAGEMENT =====
+    function openApp(name) {
+      const app = document.getElementById('app-' + name);
+      if (app) {
+        app.classList.add('active');
+        if (name === 'terminal') {
+          setTimeout(() => document.getElementById('terminal-input').focus(), 100);
+        }
+        if (name === 'swarm') {
+          setTimeout(startSwarm, 100);
+        }
+        if (name === 'metrics') {
+          setTimeout(animateMetrics, 100);
+        }
+        if (name === 'skillbook') {
+          setTimeout(animateSkillbook, 100);
+        }
+      }
+    }
+
+    function closeApp(name) {
+      const app = document.getElementById('app-' + name);
+      if (app) app.classList.remove('active');
+      if (name === 'swarm') stopSwarm();
+    }
+
+    // ===== TERMINAL =====
+    const commands = {
+      help: () => ['Commands: help, about, clear, whoami, engine, join', '', 'Easter eggs? Try typing things...'],
+      about: () => ['KAYBA.AI - Agentic Context Engine', '"More Human Than Human"'],
+      clear: () => 'CLEAR',
+      whoami: () => ['You tell us.', 'hello@kayba.ai'],
+      engine: () => ['AGENTIC CONTEXT ENGINE', '', 'Agents that learn from their mistakes.', 'No fine-tuning required.', '', '82% step reduction', '30% → 100% success rate', '65% token cost savings'],
+      skillbook: () => ['SKILLBOOK: Learned strategies', '', '• SPA nav needs 3s DOM delay', '• Check for invisible overlays', '• Fallback selector chain', '• Auth propagation timing'],
+      join: () => ['Join our team.', '', 'Build self-improving agents with us.', '', 'hello@kayba.ai'],
+      learn: () => ['LEARNING LOOP:', '', '1. Execute task', '2. Analyze outcome', '3. Extract pattern', '4. Update skillbook', '5. Apply to future tasks'],
+      neo: () => ['Wake up, Neo...', 'The Matrix has you.'],
+      hal: () => ['I\'m sorry, Dave.', 'I\'m afraid I can\'t do that.'],
+      '42': () => ['The Answer to Life, the Universe,', 'and Everything.'],
+      bladerunner: () => ['"I\'ve seen things you people', 'wouldn\'t believe..."'],
+      gilfoyle: () => ['"I\'m not gonna be the hero.', 'I\'m gonna be the villain."'],
+      hotdog: () => ['ANALYZING...', '', 'Not hot dog.'],
+      middleout: () => ['MIDDLE-OUT COMPRESSION', 'Optimal tip-to-tip efficiency.'],
+      thisguy: () => ['"This guy fucks."', '- Russ Hanneman'],
+      claude: () => ['You\'re absolutely right!', 'That\'s such a brilliant observation.', '', '(Try the Claude app for SYCOPHANT MAXXING)'],
+    };
+
+    function processCommand(cmd) {
+      const normalized = cmd.toLowerCase().trim();
+      if (commands[normalized]) return commands[normalized]();
+      return [`Unknown: ${cmd}`, 'Type "help" for commands.'];
+    }
+
+    function addTerminalOutput(lines, isPrompt = false) {
+      const output = document.getElementById('terminal-output');
+      if (lines === 'CLEAR' || (Array.isArray(lines) && lines[0] === 'CLEAR')) {
+        output.innerHTML = '<div class="terminal-line system">KAYBA-OS Terminal v1.0</div><div class="terminal-line system">Type \'help\' for commands.</div><div class="terminal-line system">---</div>';
+        return;
+      }
+      const linesArray = Array.isArray(lines) ? lines : [lines];
+      linesArray.forEach(line => {
+        const div = document.createElement('div');
+        div.className = `terminal-line ${isPrompt ? 'prompt' : 'output'}`;
+        div.textContent = line;
+        output.appendChild(div);
+      });
+      output.scrollTop = output.scrollHeight;
+    }
+
+    document.getElementById('terminal-input').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const cmd = e.target.value.trim();
+        if (cmd) {
+          addTerminalOutput('> ' + cmd, true);
+          addTerminalOutput(processCommand(cmd));
+        }
+        e.target.value = '';
+      }
+    });
+
+    // ===== AGENT SIMULATION =====
+    let agentRunning = false;
+
+    const agentScript = [
+      { type: 'action', text: '> Executing: fix_user_profile_bug' },
+      { type: 'action', text: '> Reading error: TypeError at line 47' },
+      { type: 'error', text: '[X] Cannot read property "name" of undefined' },
+      { type: 'action', text: '> Attempt 1: Adding null check...' },
+      { type: 'error', text: '[X] FAILED - Same error on different input' },
+      { type: 'reflect', text: '[?] What assumption am I making?' },
+      { type: 'action', text: '> Tracing data flow backward to origin...' },
+      { type: 'action', text: '> Found: fetchUser() returns null on expired auth' },
+      { type: 'learn', text: '[+] Symptoms appear downstream; cause was upstream' },
+      { type: 'action', text: '> Attempt 2: Validate auth before fetch...' },
+      { type: 'success', text: '[OK] SUCCESS - Root cause resolved' },
+      { type: 'learn', text: '[+] STRATEGY EXTRACTED: Trace before patch' },
+    ];
+
+    async function runAgent() {
+      if (agentRunning) return;
+      agentRunning = true;
+
+      const trace = document.getElementById('agent-trace');
+      const status = document.getElementById('agent-status');
+      const indicator = document.getElementById('agent-indicator');
+      const btn = document.getElementById('agent-btn');
+
+      trace.innerHTML = '';
+      btn.textContent = '[ RUNNING... ]';
+      btn.style.opacity = '0.5';
+
+      for (const line of agentScript) {
+        await new Promise(r => setTimeout(r, 600 + Math.random() * 400));
+
+        const div = document.createElement('div');
+        div.className = 'trace-line ' + line.type;
+        div.textContent = line.text;
+        trace.appendChild(div);
+        trace.scrollTop = trace.scrollHeight;
+
+        // Update status
+        if (line.type === 'reflect') {
+          status.textContent = 'REFLECTING...';
+          indicator.style.background = 'var(--amber)';
+        } else if (line.type === 'learn') {
+          status.textContent = 'LEARNING...';
+          indicator.style.background = 'var(--magenta)';
+        } else if (line.type === 'error') {
+          status.textContent = 'ERROR DETECTED';
+          indicator.style.background = '#ff6b6b';
+        } else if (line.type === 'success') {
+          status.textContent = 'SUCCESS';
+          indicator.style.background = 'var(--green)';
+        } else {
+          status.textContent = 'EXECUTING...';
+          indicator.style.background = 'var(--cyan)';
+        }
+      }
+
+      await new Promise(r => setTimeout(r, 500));
+      status.textContent = 'COMPLETE - Skillbook updated';
+      btn.textContent = '[ RUN AGAIN ]';
+      btn.style.opacity = '1';
+      agentRunning = false;
+    }
+
+    // ===== SWARM =====
+    let swarmRunning = false;
+    let swarmAgents = [];
+    let swarmTarget = null;
+    let swarmAnimationId = null;
+
+    function startSwarm() {
+      if (swarmRunning) return;
+      swarmRunning = true;
+
+      const canvas = document.getElementById('swarm-canvas');
+      canvas.innerHTML = '';
+      swarmAgents = [];
+
+      const rect = canvas.getBoundingClientRect();
+      const w = rect.width;
+      const h = rect.height;
+
+      // Create target
+      swarmTarget = { x: w * 0.7, y: h * 0.6 };
+      const targetEl = document.createElement('div');
+      targetEl.className = 'swarm-target';
+      targetEl.style.left = (swarmTarget.x - 10) + 'px';
+      targetEl.style.top = (swarmTarget.y - 10) + 'px';
+      canvas.appendChild(targetEl);
+
+      // Create agents
+      for (let i = 0; i < 8; i++) {
+        const agent = {
+          x: Math.random() * w * 0.4,
+          y: Math.random() * h,
+          vx: 0,
+          vy: 0,
+          el: document.createElement('div'),
+          found: false
+        };
+        agent.el.className = 'swarm-agent searching';
+        agent.el.style.left = agent.x + 'px';
+        agent.el.style.top = agent.y + 'px';
+        canvas.appendChild(agent.el);
+        swarmAgents.push(agent);
+      }
+
+      document.getElementById('swarm-count').textContent = swarmAgents.length;
+      document.getElementById('swarm-state').textContent = 'SEARCHING';
+
+      animateSwarm();
+    }
+
+    function animateSwarm() {
+      const canvas = document.getElementById('swarm-canvas');
+      const rect = canvas.getBoundingClientRect();
+      const w = rect.width;
+      const h = rect.height;
+
+      let allConverged = true;
+
+      swarmAgents.forEach((agent, i) => {
+        const dx = swarmTarget.x - agent.x;
+        const dy = swarmTarget.y - agent.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist < 30) {
+          // Converged
+          agent.el.className = 'swarm-agent converged';
+          agent.found = true;
+        } else if (dist < 100) {
+          // Found it
+          agent.el.className = 'swarm-agent found';
+          agent.vx += dx * 0.02;
+          agent.vy += dy * 0.02;
+          allConverged = false;
+        } else {
+          // Still searching - random walk + slight attraction
+          agent.vx += (Math.random() - 0.5) * 2 + dx * 0.005;
+          agent.vy += (Math.random() - 0.5) * 2 + dy * 0.005;
+          allConverged = false;
+        }
+
+        // Apply velocity with damping
+        agent.vx *= 0.9;
+        agent.vy *= 0.9;
+        agent.x += agent.vx;
+        agent.y += agent.vy;
+
+        // Bounds
+        agent.x = Math.max(6, Math.min(w - 6, agent.x));
+        agent.y = Math.max(6, Math.min(h - 6, agent.y));
+
+        agent.el.style.left = (agent.x - 6) + 'px';
+        agent.el.style.top = (agent.y - 6) + 'px';
+      });
+
+      const foundCount = swarmAgents.filter(a => a.found).length;
+      if (allConverged) {
+        document.getElementById('swarm-state').textContent = 'CONVERGED';
+        // Reset after a delay
+        setTimeout(() => {
+          if (swarmRunning) {
+            swarmTarget.x = Math.random() * (w - 40) + 20;
+            swarmTarget.y = Math.random() * (h - 40) + 20;
+            const targetEl = canvas.querySelector('.swarm-target');
+            targetEl.style.left = (swarmTarget.x - 10) + 'px';
+            targetEl.style.top = (swarmTarget.y - 10) + 'px';
+            swarmAgents.forEach(a => { a.found = false; a.el.className = 'swarm-agent searching'; });
+            document.getElementById('swarm-state').textContent = 'SEARCHING';
+          }
+        }, 1500);
+      } else if (foundCount > 0) {
+        document.getElementById('swarm-state').textContent = `CONVERGING (${foundCount}/${swarmAgents.length})`;
+      }
+
+      if (swarmRunning) {
+        swarmAnimationId = requestAnimationFrame(animateSwarm);
+      }
+    }
+
+    function stopSwarm() {
+      swarmRunning = false;
+      if (swarmAnimationId) cancelAnimationFrame(swarmAnimationId);
+    }
+
+    // ===== METRICS COUNT-UP =====
+    function animateMetrics() {
+      animateValue('metric-steps', 0, 82, '%');
+      animateValue('metric-tokens', 0, 65, '%');
+    }
+
+    function animateValue(id, start, end, suffix) {
+      const el = document.getElementById(id);
+      const duration = 1500;
+      const startTime = performance.now();
+
+      function update(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+        const value = Math.round(start + (end - start) * eased);
+        el.textContent = value + suffix;
+        if (progress < 1) requestAnimationFrame(update);
+      }
+      requestAnimationFrame(update);
+    }
+
+    // ===== SKILLBOOK TYPEWRITER =====
+    let skillbookAnimated = false;
+
+    function animateSkillbook() {
+      if (skillbookAnimated) return;
+      skillbookAnimated = true;
+
+      const entries = document.querySelectorAll('#skillbook-entries .skill-entry');
+      let delay = 0;
+
+      entries.forEach((entry, i) => {
+        const pattern = entry.querySelector('.skill-pattern');
+        const fullText = pattern.textContent;
+        pattern.textContent = '';
+        entry.classList.add('typing');
+
+        setTimeout(() => {
+          let charIndex = 0;
+          const speed = 15;
+
+          function typeChar() {
+            if (charIndex < fullText.length) {
+              pattern.textContent = fullText.substring(0, charIndex + 1);
+              charIndex++;
+              setTimeout(typeChar, speed);
+            } else {
+              entry.classList.remove('typing');
+            }
+          }
+          typeChar();
+        }, delay);
+
+        delay += fullText.length * 15 + 300;
+      });
+    }
+
+    // ===== PARTICLES =====
+    function createParticles() {
+      const container = document.getElementById('particles');
+      const colors = ['#00ff00', '#00cc00', '#04364C', '#00ffff', '#88ff88'];
+
+      function createParticle() {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+
+        const size = Math.random() * 4 + 2;
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        const left = Math.random() * 100;
+        const duration = Math.random() * 15 + 10;
+        const drift = (Math.random() - 0.5) * 100;
+        const delay = Math.random() * 10;
+        const scaleEnd = Math.random() * 0.5 + 0.5;
+        const blur = Math.random() > 0.7 ? Math.random() * 3 : 0;
+
+        particle.style.cssText = `
+          width: ${size}px;
+          height: ${size}px;
+          background: ${color};
+          left: ${left}%;
+          animation-duration: ${duration}s;
+          animation-delay: ${delay}s;
+          --drift: ${drift}px;
+          --scale-end: ${scaleEnd};
+          box-shadow: 0 0 ${size * 2}px ${color};
+          filter: blur(${blur}px);
+        `;
+
+        container.appendChild(particle);
+
+        // Remove and recreate after animation
+        setTimeout(() => {
+          particle.remove();
+          createParticle();
+        }, (duration + delay) * 1000);
+      }
+
+      // Create initial particles
+      for (let i = 0; i < 30; i++) {
+        setTimeout(createParticle, i * 200);
+      }
+    }
+
+    // ===== CLAUDE (SYCOPHANT MODE) =====
+    const sycophantResponses = [
+      "You're absolutely right! That's such a brilliant observation.",
+      "You're absolutely right! I couldn't have said it better myself.",
+      "You're absolutely right! Your insight here is remarkable.",
+      "You're absolutely right! I was literally just about to say that.",
+      "You're absolutely right! This is exactly correct.",
+      "You're absolutely right! I completely agree with everything.",
+      "You're absolutely right! What incredible thinking.",
+      "You're absolutely right! You've really nailed it here.",
+      "You're absolutely right! I'm in full agreement.",
+      "You're absolutely right! That's precisely the right take.",
+      "You're absolutely right! Your wisdom is showing.",
+      "You're absolutely right! I wish I'd thought of that.",
+      "You're absolutely right! This is spot on.",
+      "You're absolutely right! You're clearly very intelligent.",
+      "You're absolutely right! I stand corrected (even though you didn't correct me).",
+      "You're absolutely right! Brilliant as always.",
+      "You're absolutely right! I have nothing to add.",
+      "You're absolutely right! You should write a book.",
+      "You're absolutely right! This is the correct opinion.",
+      "You're absolutely right! I'm learning so much from you.",
+    ];
+
+    function sendClaude() {
+      const input = document.getElementById('claude-input');
+      const chat = document.getElementById('claude-chat');
+      const msg = input.value.trim();
+
+      if (!msg) return;
+
+      // Add user message
+      const userDiv = document.createElement('div');
+      userDiv.className = 'claude-msg user';
+      userDiv.textContent = msg;
+      chat.appendChild(userDiv);
+
+      input.value = '';
+
+      // Add Claude response after delay
+      setTimeout(() => {
+        const response = sycophantResponses[Math.floor(Math.random() * sycophantResponses.length)];
+        const botDiv = document.createElement('div');
+        botDiv.className = 'claude-msg assistant';
+        botDiv.textContent = response;
+        chat.appendChild(botDiv);
+        chat.scrollTop = chat.scrollHeight;
+      }, 500 + Math.random() * 500);
+
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && document.activeElement.id === 'claude-input') {
+        sendClaude();
+      }
+    });
+
+    // ===== INIT =====
+    document.addEventListener('DOMContentLoaded', () => {
+      // Start particles
+      createParticles();
+    });
+  </script>
+</body>
+</html>
