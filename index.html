@@ -665,6 +665,116 @@
       color: var(--green);
     }
 
+    /* ===== GITHUB APP ===== */
+    .github-content {
+      padding: 10px;
+      text-align: center;
+    }
+
+    .github-header {
+      font-size: 24px;
+      color: var(--cyan);
+      text-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+      margin-bottom: 8px;
+    }
+
+    .github-repo-name {
+      font-size: 16px;
+      color: var(--green-dark);
+      margin-bottom: 25px;
+    }
+
+    .github-stats {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      margin-bottom: 30px;
+    }
+
+    .github-stat {
+      background: rgba(0, 30, 0, 0.6);
+      border: 2px solid var(--green-dark);
+      padding: 20px 25px;
+      min-width: 100px;
+    }
+
+    .github-stat-value {
+      font-size: 36px;
+      color: var(--green);
+      text-shadow: 0 0 20px var(--green-glow);
+      margin-bottom: 5px;
+    }
+
+    .github-stat-label {
+      font-size: 16px;
+      color: var(--green-dim);
+    }
+
+    .github-graph {
+      background: rgba(0, 20, 0, 0.6);
+      border: 2px solid var(--green-dark);
+      padding: 20px;
+      margin-bottom: 25px;
+    }
+
+    .github-graph-label {
+      font-size: 14px;
+      color: var(--green-dark);
+      margin-bottom: 15px;
+    }
+
+    .github-graph-bars {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 8px;
+      height: 80px;
+    }
+
+    .gh-bar {
+      width: 24px;
+      background: var(--green-dark);
+      border-radius: 2px 2px 0 0;
+      transition: all 0.3s ease;
+    }
+
+    .gh-bar.active {
+      background: var(--green);
+      box-shadow: 0 0 15px var(--green-glow);
+    }
+
+    .github-graph-legend {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--green-dark);
+      margin-top: 10px;
+    }
+
+    .github-btn {
+      display: inline-block;
+      background: none;
+      border: 2px solid var(--green);
+      color: var(--green);
+      padding: 15px 40px;
+      font-family: 'VT323', monospace;
+      font-size: 22px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.15s;
+      margin-bottom: 20px;
+    }
+
+    .github-btn:hover {
+      background: var(--green);
+      color: var(--screen-bg);
+    }
+
+    .github-footer {
+      font-size: 16px;
+      color: var(--green-dark);
+    }
+
     /* ===== SYSTEM APP ===== */
     .system-content {
       padding: 10px;
@@ -987,6 +1097,10 @@
             <div class="icon-img">■</div>
             <div class="icon-label">System</div>
           </div>
+          <div class="icon" onclick="openApp('github')">
+            <div class="icon-img">★</div>
+            <div class="icon-label">GitHub</div>
+          </div>
         </div>
       </div>
 
@@ -1132,6 +1246,59 @@
         </div>
       </div>
 
+      <!-- GitHub App -->
+      <div class="app-window" id="app-github">
+        <div class="app-header">
+          <span class="app-title"><span class="app-title-icon">★</span> GitHub</span>
+          <button class="app-close" onclick="closeApp('github')">×</button>
+        </div>
+        <div class="app-content">
+          <div class="github-content">
+            <div class="github-header">AGENTIC CONTEXT ENGINE</div>
+            <div class="github-repo-name">kayba-ai/agentic-context-engine</div>
+
+            <div class="github-stats">
+              <div class="github-stat">
+                <div class="github-stat-value" id="gh-stars">--</div>
+                <div class="github-stat-label">Stars</div>
+              </div>
+              <div class="github-stat">
+                <div class="github-stat-value" id="gh-forks">--</div>
+                <div class="github-stat-label">Forks</div>
+              </div>
+              <div class="github-stat">
+                <div class="github-stat-value" id="gh-watchers">--</div>
+                <div class="github-stat-label">Watchers</div>
+              </div>
+            </div>
+
+            <div class="github-graph">
+              <div class="github-graph-label">GROWTH</div>
+              <div class="github-graph-bars" id="gh-graph">
+                <div class="gh-bar" style="height: 20%"></div>
+                <div class="gh-bar" style="height: 35%"></div>
+                <div class="gh-bar" style="height: 45%"></div>
+                <div class="gh-bar" style="height: 40%"></div>
+                <div class="gh-bar" style="height: 60%"></div>
+                <div class="gh-bar" style="height: 75%"></div>
+                <div class="gh-bar" style="height: 90%"></div>
+                <div class="gh-bar active" style="height: 100%"></div>
+              </div>
+              <div class="github-graph-legend">
+                <span>Past</span>
+                <span>Now</span>
+              </div>
+            </div>
+
+            <a href="https://github.com/kayba-ai/agentic-context-engine" target="_blank" class="github-btn">
+              [ VIEW ON GITHUB → ]
+            </a>
+
+            <div class="github-footer">Open Source // MIT License</div>
+          </div>
+        </div>
+      </div>
+
       <!-- System App -->
       <div class="app-window" id="app-system">
         <div class="app-header">
@@ -1228,6 +1395,9 @@
         }
         if (name === 'system') {
           startSystemUptime();
+        }
+        if (name === 'github') {
+          fetchGitHubStats();
         }
       }
     }
@@ -1589,6 +1759,47 @@
       for (let i = 0; i < 30; i++) {
         setTimeout(createParticle, i * 200);
       }
+    }
+
+    // ===== GITHUB STATS =====
+    let ghStatsFetched = false;
+
+    async function fetchGitHubStats() {
+      if (ghStatsFetched) return;
+
+      try {
+        const response = await fetch('https://api.github.com/repos/kayba-ai/agentic-context-engine');
+        const data = await response.json();
+
+        if (data.stargazers_count !== undefined) {
+          animateNumber('gh-stars', data.stargazers_count);
+          animateNumber('gh-forks', data.forks_count);
+          animateNumber('gh-watchers', data.subscribers_count);
+          ghStatsFetched = true;
+        }
+      } catch (err) {
+        // Fallback values if API fails
+        document.getElementById('gh-stars').textContent = '★';
+        document.getElementById('gh-forks').textContent = '◇';
+        document.getElementById('gh-watchers').textContent = '◉';
+      }
+    }
+
+    function animateNumber(id, target) {
+      const el = document.getElementById(id);
+      const duration = 1000;
+      const startTime = performance.now();
+      const start = 0;
+
+      function update(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        const value = Math.round(start + (target - start) * eased);
+        el.textContent = value;
+        if (progress < 1) requestAnimationFrame(update);
+      }
+      requestAnimationFrame(update);
     }
 
     // ===== SYSTEM UPTIME =====
